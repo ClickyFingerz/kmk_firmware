@@ -17,40 +17,28 @@ from kmk.modules.split import Split, SplitSide, SplitType
 from kmk.modules.tapdance import TapDance
 from kmk.scanners import DiodeOrientation
 
-
+#
 ### KEYBOARD ###
 keyboard = KMKKeyboard()
 keyboard.diode_orientation = DiodeOrientation.COL2ROW
-"""
-# LEFT SIDE
 keyboard.col_pins = (board.GP14, board.GP13, board.GP12, board.GP11, board.GP10, board.GP9)
 keyboard.row_pins = (board.GP4, board.GP5, board.GP6, board.GP7, board.GP8)
+
+# Comment one of these for each side
+#split_side = SplitSide.LEFT
+split_side = SplitSide.RIGHT
+
+uart_flip = False if split_side == SplitSide.LEFT else True
+
 split = Split(
-    split_flip=False,  # If both halves are the same, but flipped, set this True
-    split_side=SplitSide.LEFT,  # Sets if this is to SplitSide.LEFT or SplitSide.RIGHT, or use EE hands
-    split_type=SplitType.UART,  # Defaults to UART
-    split_target_left=True,  # Assumes that left will be the one on USB. Set to False if it will be the right
-    uart_interval=20,  # Sets the uarts delay. Lower numbers draw more power
-    data_pin=board.GP0,  # The primary data pin to talk to the secondary device with
-    data_pin2=board.GP1,  # Second uart pin to allow 2 way communication
-    uart_flip=False,  # Reverses the RX and TX pins if both are provided
-    use_pio=True,  # Use RP2040 PIO implementation of UART. Required if you want to use other pins than RX/TX
-)
-"""
-# RIGHT SIDE
-keyboard.col_pins = (board.GP14, board.GP13, board.GP12, board.GP11, board.GP10, board.GP9)
-keyboard.row_pins = (board.GP4, board.GP5, board.GP6, board.GP7, board.GP8)
-split = Split(
-    split_flip=False,  # If both halves are the same, but flipped, set this True
-    split_side=SplitSide.RIGHT,  # Sets if this is to SplitSide.LEFT or SplitSide.RIGHT, or use EE hands
-    split_type=SplitType.UART,  # Defaults to UART
-    # Switch to False to test right side pins
-    split_target_left=True,  # Assumes that left will be the one on USB. Set to False if it will be the right
-    uart_interval=20,  # Sets the uarts delay. Lower numbers draw more power
-    data_pin=board.GP0,  # The primary data pin to talk to the secondary device with
-    data_pin2=board.GP1,  # Second uart pin to allow 2 way communication
-    uart_flip=False,  # Reverses the RX and TX pins if both are provided
-    use_pio=True,  # Use RP2040 PIO implementation of UART. Required if you want to use other pins than RX/TX
+    #split_side=split_side,  # Sets if this is to SplitSide.LEFT or SplitSide.RIGHT, or use EE hands
+    split_type = SplitType.UART,  # Defaults to UART
+    split_target_left = True,  # Assumes that left will be the one on USB. Set to False if it will be the right
+    #uart_interval=20,  # Sets the uarts delay. Lower numbers draw more power
+    data_pin = board.GP1,
+    data_pin2 = board.GP0,
+    uart_flip = uart_flip,  # Reverses the RX and TX pins if both are provided -- works with LEFT=True RIGHT=False
+    use_pio = True,  # Use RP2040 PIO implementation of UART. Required if you want to use other pins than RX/TX
 )
 
 keyboard.debug_enabled = True
@@ -79,18 +67,116 @@ keyboard.coord_mapping = [
 ]
 
 ### KEYMAP ###
+# 
+# To do:
+#   - Left hand enter, one handed typing
+#   - F layer
+#   - Dynamic sequence recording
+#   - Assign right hand extra key, right hand tap SYM key
+#   - Audio layer
+#   - Coding shortcut layer (e.g., alt+enter, debugging)
+#
+
+Combos.combos = [
+    Chord((KC.Q, KC.W), KC.GRV),
+    Chord((KC.W, KC.F), KC.ESC),
+    Chord((KC.C, KC.X), KC.SPC)
+]
+
+DOWN_CTL = KC.HT(KC.DOWN, KC.LCTL)
+LEFT_ALT = KC.HT(KC.LEFT, KC.LALT)
+OS_LSFT  = KC.OS(KC.LSFT)
+OS_SYM   = KC.OS(KC.MO(2))
+R_LALT   = KC.HT(KC.R, KC.LALT)
+RGHT_SFT = KC.HT(KC.RIGHT, KC.LSFT)
+S_LCTL   = KC.HT(KC.S, KC.LCTL)
+T_LSFT   = KC.HT(KC.T, KC.LSFT)
+
+# Layers
+NUM_SPC  = KC.LT(1,KC.SPC)
+SYM      = KC.MO(2)
+NAV_BSPC = KC.LT(3,KC.BSPC)
+CODE     = KC.MO(4)
+
+# Visual Studio
+DBG_BKPT = KC.F9
+DBG_INTO = KC.F11
+DBG_OVER = KC.F10
+DBG_OUT  = KC.LSFT(KC.F11)
+DBG_RUN  = KC.LCTL(KC.F5)
+DBG_STOP = KC.LSFT(KC.F5)
+DBG_STRT = KC.F5
+MOV_DOWN = KC.LALT(KC.DOWN)
+MOV_UP   = KC.LALT(KC.UP)
+REFACTOR = KC.LALT(KC.ENT)
+
 keyboard.keymap = [
 
     # [0] COLEMAK 
     [
     #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
-                        KC.Q,       KC.W,       KC.F,       KC.P,       KC.B,           KC.J,       KC.L,       KC.U,       KC.Y,       KC.QUOT,              # GP4
-            KC.TAB,     KC.A,       KC.R,       KC.S,       KC.T,       KC.G,           KC.M,       KC.N,       KC.E,       KC.I,       KC.O,      KC.MINS,   # GP5
-            KC.LCTL,    KC.Z,       KC.X,       KC.C,       KC.D,       KC.V,           KC.K,       KC.H,       KC.COMM,    KC.DOT,     KC.SLSH,   KC.ENT,    # GP6
-                                                KC.A,       KC.B,       KC.C,           KC.X,       KC.Y,       KC.Z,                                         # GP7
-                        KC.N1,      KC.N2,      KC.N3,      KC.N4,      KC.N5,          KC.N6,      KC.N7,      KC.N8,      KC.N9,      KC.N0,                # GP8
-    ]
+                        KC.Q,       KC.W,       KC.F,       KC.P,       KC.B,           KC.J,       KC.L,       KC.U,       KC.Y,       KC.QUOT,               # GP4
+            KC.TAB,     KC.A,       R_LALT,     S_LCTL,     T_LSFT,     KC.G,           KC.M,       KC.N,       KC.E,       KC.I,       KC.O,       KC.MINS,   # GP5
+            KC.LCTL,    KC.Z,       KC.X,       KC.C,       KC.D,       KC.V,           KC.K,       KC.H,       KC.COMM,    KC.DOT,     KC.SLSH,    KC.ENT,    # GP6
+                                                KC.SPC,     NAV_BSPC,   OS_LSFT,        SYM,        NUM_SPC,    KC.TRNS,                                       # GP7
+                        KC.DEL,     CODE,       NAV_BSPC,   KC.ENT,     KC.TRNS,        KC.LCTL,    KC.LALT,    KC.LGUI,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    ],
+
+    # [1] NUMBER 
+    [
+    #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
+                        KC.EXLM,    KC.AT,      KC.HASH,    KC.DLR,     KC.PERC,        KC.CIRC,    KC.AMPR,    KC.ASTR,    KC.F9,      KC.F10,                # GP4
+            KC.PLUS,    KC.N1,      KC.N2,      KC.N3,      KC.N4,      KC.N5,          KC.N6,      KC.N7,      KC.N8,      KC.N9,      KC.N0,      KC.MINS,   # GP5
+            KC.LCTL,    KC.F1,      KC.F2,      KC.F3,      KC.F4,      KC.F5,          KC.F6,      KC.F7,      KC.F8,      KC.DOT,     KC.SLSH,    KC.EQL,    # GP6
+                                                KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,                                       # GP7
+                        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    ],
+
+    # [2] SYMBOL 
+    [
+    #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
+                        KC.GRV,     KC.AT,      KC.PIPE,    KC.DLR,     KC.CIRC,        KC.CIRC,    KC.DLR,     KC.PIPE,    KC.AT,      KC.TILDE,              # GP4
+            KC.AMPR,    KC.PERC,    KC.COLN,    KC.EXLM,    KC.HASH,    KC.BSLS,        KC.BSLS,    KC.HASH,    KC.EXLM,    KC.COLN,    KC.PERC,    KC.AMPR,   # GP5
+            KC.TILD,    KC.SCLN,    KC.LBRC,    KC.LCBR,    KC.LPRN,    KC.ASTR,        KC.ASTR,    KC.RPRN,    KC.RCBR,    KC.RBRC,    KC.SCLN,    KC.TILD,   # GP6
+                                                KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,                                       # GP7
+                        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    ],
     
+    # [3] NAV 
+    [
+    #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
+                        KC.TRNS,    KC.TRNS,    KC.UP,      KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.HOME,    KC.UP,      KC.END,     KC.TRNS,               # GP4
+            KC.TRNS,    KC.TRNS,    LEFT_ALT,   DOWN_CTL,   RGHT_SFT,   KC.TRNS,        KC.PGUP,    KC.LEFT,    KC.DOWN,    KC.RGHT,    KC.BSPC,    KC.TRNS,   # GP5
+            KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.PGDN,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.DEL,     KC.TRNS,   # GP6
+                                                KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,                                       # GP7
+                        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    ],
+
+    # [4] CODE (VISUAL STUDIO) 
+    [
+    #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
+                        KC.TRNS,    DBG_STOP,   DBG_OUT,    KC.TRNS,    DBG_BKPT,       KC.TRNS,    KC.TRNS,    MOV_UP,     KC.TRNS,    KC.TRNS,               # GP4
+            KC.TRNS,    KC.TRNS,    DBG_RUN,    DBG_STRT,   REFACTOR,   DBG_OVER,       KC.TRNS,    KC.TRNS,    MOV_DOWN,   KC.TRNS,    KC.TRNS,    KC.TRNS,   # GP5
+            KC.TRNS,    KC.TRNS,    KC.TRNS,    DBG_INTO,   KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,   # GP6
+                                                KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,                                       # GP7
+                        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    ]
+
+    # [x] TEMPLATE 
+    #[
+    #       GP14        GP13        GP12        GP11        GP10        GP9      ||     GP14        GP13        GP12        GP11        GP10        GP9
+    #                    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,               # GP4
+    #        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,   # GP5
+    #        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,   # GP6
+    #                                            KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,                                       # GP7
+    #                    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS                # GP8
+    #                   UP          FORWARD     DOWN        BACK        CLICK           DOWN        FORWARD     UP          BACK        CLICK
+    #],
 ]
 
 if __name__ == '__main__':
